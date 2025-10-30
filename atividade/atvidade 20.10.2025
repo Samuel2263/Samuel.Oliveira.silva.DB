@@ -1,0 +1,29 @@
+CREATE OR REPLACE TRIGGER trg_log_update_vendas
+AFTER UPDATE ON VENDAS
+FOR EACH ROW
+BEGIN
+    INSERT INTO LOG_VENDAS (id_venda, data_log, usuario, acao, valor_antigo, valor_novo)
+    VALUES (
+        :OLD.id_venda,
+        SYSDATE,
+        USER,
+        'UPDATE',
+        :OLD.valor,
+        :NEW.valor
+    );
+END;
+/
+
+CREATE OR REPLACE PROCEDURE total_vendas_vendedor(p_nome_vendedor IN VARCHAR2) IS
+    v_total NUMBER;
+BEGIN
+    SELECT SUM(valor)
+    INTO v_total
+    FROM VENDAS v
+    JOIN VENDEDORES vd ON v.id_vendedor = vd.id_vendedor
+    WHERE vd.nome = p_nome_vendedor;
+
+    DBMS_OUTPUT.PUT_LINE('Total de vendas de ' || p_nome_vendedor || ': ' || NVL(v_total, 0));
+END;
+/
+
